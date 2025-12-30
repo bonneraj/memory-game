@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Spinner Game</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <h1>📚 Memory Spinner</h1>
+
+  <section id="bookshelf">
+    <h2>Bookshelf</h2>
+    <div id="books"></div>
+  </section>
+
+  <section id="wheel-section">
+    <button id="spin-btn">🎡 Spin</button>
+    <div id="wheel-result"></div>
+  </section>
+
+  <section id="board"></section>
+
+  <section id="guess-panel" class="hidden">
+    <h2>Which book is under this character?</h2>
+    <div id="guess-options"></div>
+  </section>
+
+  <footer>
+    <p>Score: <span id="score">0</span></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
