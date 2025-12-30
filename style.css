@@ -20,7 +20,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* Tile container for flip animation */
+/* Tile flip animation */
 .tile {
   perspective: 1000px;
   width: 100px;
@@ -75,9 +75,11 @@ h1 {
   cursor: default;
 }
 
-/* Selected tile highlight */
+/* Highlighted tile for spin AND selected tile */
+.tile.highlighted .tile-inner,
 .tile.selected .tile-inner {
   border: 3px solid #facc15;
+  box-shadow: 0 0 15px 5px #facc15;
 }
 
 /* Interactive bookshelf */

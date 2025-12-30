@@ -61,21 +61,16 @@ function renderBoard() {
     div.className = "tile";
     if (tile.removed) div.classList.add("removed");
     if (i === gameState.revealedTile) div.classList.add("revealed");
-    if (gameState.selectedTile === i) div.classList.add("selected");
+    if (i === gameState.selectedTile) div.classList.add("selected");
 
-    // Inner container for flip animation
     const inner = document.createElement("div");
     inner.className = "tile-inner";
-    if (i === gameState.revealedTile || tile.removed) {
-      inner.classList.add("flipped");
-    }
+    if (i === gameState.revealedTile || tile.removed) inner.classList.add("flipped");
 
-    // Front face (character)
     const front = document.createElement("div");
     front.className = "tile-front";
     front.textContent = tile.character;
 
-    // Back face (book)
     const back = document.createElement("div");
     back.className = "tile-back";
     back.textContent = tile.book;
@@ -90,7 +85,7 @@ function renderBoard() {
   });
 }
 
-// Render interactive bookshelf
+// Render bookshelf
 function renderBookshelf() {
   booksEl.innerHTML = "";
   gameState.remainingBooks.forEach(book => {
@@ -102,34 +97,60 @@ function renderBookshelf() {
   });
 }
 
-// Spin wheel
+// Spin with deceleration and clearing previous selection
 spinBtn.onclick = () => {
-  const available = gameState.tiles
+  const availableIndices = gameState.tiles
     .map((t, i) => ({ t, i }))
-    .filter(x => !x.t.removed);
+    .filter(x => !x.t.removed)
+    .map(x => x.i);
 
-  if (!available.length) return;
+  if (!availableIndices.length) return;
 
-  const pick = available[Math.floor(Math.random() * available.length)];
-  gameState.selectedTile = pick.i;
-  resultEl.textContent = `Selected: ${pick.t.character}`;
-  renderBoard();
+  // Clear previous selection
+  if (gameState.selectedTile !== null) {
+    boardEl.children[gameState.selectedTile].classList.remove("selected");
+    gameState.selectedTile = null;
+    resultEl.textContent = "";
+  }
+
+  let iteration = 0;
+  let current = null;
+  const totalIterations = 15; // fewer steps for faster spin
+  let intervalTime = 50; // fast start
+
+  const spinStep = () => {
+    if (current !== null) boardEl.children[current].classList.remove("highlighted");
+
+    current = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    boardEl.children[current].classList.add("highlighted");
+
+    iteration++;
+    intervalTime = Math.min(150, 50 + iteration * 10); // gradual deceleration
+
+    if (iteration < totalIterations) {
+      setTimeout(spinStep, intervalTime);
+    } else {
+      gameState.selectedTile = current;
+      boardEl.children[current].classList.add("selected"); // prominent final highlight
+      resultEl.textContent = `Selected: ${gameState.tiles[current].character}`;
+    }
+  };
+
+  spinStep();
 };
 
 // Handle guess
 function handleGuess(bookGuess) {
   if (gameState.selectedTile === null) {
-    alert("Spin the wheel first to select a character!");
+    alert("Spin to select a character first!");
     return;
   }
 
   const tile = gameState.tiles[gameState.selectedTile];
 
-  // Reveal the tile immediately
   gameState.revealedTile = gameState.selectedTile;
   renderBoard();
 
-  // Correct guess logic
   if (bookGuess === tile.book) {
     tile.removed = true;
     gameState.score++;
@@ -137,11 +158,10 @@ function handleGuess(bookGuess) {
     scoreEl.textContent = gameState.score;
   }
 
-  // Show Flip Back button
   flipBackPanel.classList.remove("hidden");
 }
 
-// Flip back button
+// Flip back
 flipBackBtn.onclick = () => {
   gameState.revealedTile = null;
   gameState.selectedTile = null;
@@ -155,5 +175,5 @@ function onTileClick(tileIndex) {
   console.log("Tile clicked:", tileIndex);
 }
 
-// Initialize
+// Initialize game
 initGame();
