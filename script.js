@@ -33,7 +33,7 @@ const scoreEl = document.getElementById("score");
 
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
-/* ===== INIT ===== */
+/* ================= INIT ================= */
 
 function initGame() {
   const shuffledBooks = shuffle(books);
@@ -45,23 +45,24 @@ function initGame() {
   }));
 
   gameState.remainingBooks = [...shuffledBooks];
+  gameState.score = 0;
   gameState.selectedTile = null;
   gameState.revealedTile = null;
-  gameState.score = 0;
-
   gamePhase = "waitingForSpin";
+
   render();
 }
 
-/* ===== RENDER ===== */
+/* ================= RENDER ================= */
 
 function render() {
   renderBoard();
   renderBookshelf();
+  updateControls();
   scoreEl.textContent = gameState.score;
 }
 
-/* ===== BOARD (DECORATIVE ONLY) ===== */
+/* ----- BOARD (DECORATIVE ONLY) ----- */
 
 function renderBoard() {
   boardEl.innerHTML = "";
@@ -70,17 +71,19 @@ function renderBoard() {
     const tileEl = document.createElement("div");
     tileEl.className = "tile";
 
+    // Decorative only — no clicks
+    tileEl.style.pointerEvents = "none";
+    tileEl.style.cursor = "default";
+
     if (tile.removed) tileEl.classList.add("removed");
     if (i === gameState.selectedTile) tileEl.classList.add("selected");
-
-    // 🔒 No click handlers — tiles are display-only
-    tileEl.style.pointerEvents = "none";
 
     const inner = document.createElement("div");
     inner.className = "tile-inner";
 
     if (i === gameState.revealedTile) {
       inner.classList.add("flipped");
+      tileEl.classList.add("revealed");
     }
 
     const front = document.createElement("div");
@@ -97,7 +100,7 @@ function renderBoard() {
   });
 }
 
-/* ===== BOOKSHELF (GUESS INPUT) ===== */
+/* ----- BOOKSHELF (GUESSING ONLY) ----- */
 
 function renderBookshelf() {
   booksEl.innerHTML = "";
@@ -108,7 +111,8 @@ function renderBookshelf() {
     span.textContent = book;
 
     if (gamePhase !== "waitingForGuess") {
-      span.classList.add("disabled");
+      span.style.pointerEvents = "none";
+      span.style.opacity = "0.4";
     } else {
       span.onclick = () => handleGuess(book);
     }
@@ -117,24 +121,34 @@ function renderBookshelf() {
   });
 }
 
-/* ===== SPIN ===== */
+/* ----- BUTTON STATES ----- */
+
+function updateControls() {
+  spinBtn.disabled = gamePhase !== "waitingForSpin";
+  flipBackBtn.disabled = gamePhase !== "waitingForFlipBack";
+
+  flipBackPanel.classList.toggle(
+    "hidden",
+    gamePhase !== "waitingForFlipBack"
+  );
+}
+
+/* ================= SPIN ================= */
 
 spinBtn.onclick = () => {
   if (gamePhase !== "waitingForSpin") return;
 
+  gamePhase = "spinning";
   gameState.selectedTile = null;
-  gameState.revealedTile = null;
   resultEl.textContent = "";
 
   const available = gameState.tiles
     .map((t, i) => (!t.removed ? i : null))
     .filter(i => i !== null);
 
-  let steps = 10;          // faster spin
-  let delay = 40;
+  let steps = 10;
   let current = null;
-
-  gamePhase = "spinning";
+  let delay = 30;
 
   const spin = () => {
     if (current !== null) {
@@ -145,13 +159,18 @@ spinBtn.onclick = () => {
     boardEl.children[current].classList.add("highlighted");
 
     steps--;
-    delay += 12;
+    delay += 10;
 
     if (steps > 0) {
       setTimeout(spin, delay);
     } else {
       gameState.selectedTile = current;
-      resultEl.textContent = `Selected: ${gameState.tiles[current].character}`;
+      boardEl.children[current].classList.remove("highlighted");
+      boardEl.children[current].classList.add("selected");
+
+      resultEl.textContent =
+        `Selected: ${gameState.tiles[current].character}`;
+
       gamePhase = "waitingForGuess";
       render();
     }
@@ -160,7 +179,7 @@ spinBtn.onclick = () => {
   spin();
 };
 
-/* ===== GUESS ===== */
+/* ================= GUESS ================= */
 
 function handleGuess(bookGuess) {
   if (gamePhase !== "waitingForGuess") return;
@@ -175,24 +194,20 @@ function handleGuess(bookGuess) {
       gameState.remainingBooks.filter(b => b !== bookGuess);
   }
 
-  flipBackPanel.classList.remove("hidden");
   gamePhase = "waitingForFlipBack";
   render();
 }
 
-/* ===== FLIP BACK ===== */
+/* ================= FLIP BACK ================= */
 
 flipBackBtn.onclick = () => {
   if (gamePhase !== "waitingForFlipBack") return;
 
   gameState.revealedTile = null;
   gameState.selectedTile = null;
-  flipBackPanel.classList.add("hidden");
 
   gamePhase = "waitingForSpin";
   render();
 };
-
-/* ===== START ===== */
 
 initGame();
