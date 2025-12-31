@@ -1,30 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Library Memory Game</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Arthur Goes to the Library - Memory Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1>Arthur Goes to the Library - Memory Game</h1>
 
-  <h1>Find the Right Book</h1>
-
-    <div id="books"></div>
-
-  <div id="wheel-result"></div>
-
-  <button id="spin-btn">Select Character</button>
-
-  <div id="board"></div>
-
-  <div id="flip-back-panel" class="hidden">
-    <button id="flip-back-btn">Flip Card Back</button>
+  <!-- Difficulty Selection -->
+  <div id="difficulty-panel">
+    <h2>Select Difficulty</h2>
+    <button data-difficulty="easy">Easy (8 tiles)</button>
+    <button data-difficulty="medium">Medium (12 tiles)</button>
+    <button data-difficulty="hard">Hard (16 tiles)</button>
   </div>
 
-  <div>Score: <span id="score"></span></div>
+  <!-- Main Game UI (initially hidden) -->
+  <div id="game-container" class="hidden">
+    <div id="books"></div>
+    <div id="board"></div>
+    <div id="wheel-result"></div>
+    <button id="spin-btn">Spin</button>
+    <div>Score: <span id="score"></span></div>
 
-  <div id="debug"></div>
+    <div id="flip-back-panel" class="hidden">
+      <button id="flip-back-btn">Flip Back</button>
+    </div>
+  </div>
+
+  <!-- Optional debug info -->
+  <pre id="debug"></pre>
 
   <script src="script.js"></script>
+  <script>
+    // Hook difficulty selection buttons
+    const difficultyPanel = document.getElementById('difficulty-panel');
+    const gameContainer = document.getElementById('game-container');
+    const difficultyButtons = difficultyPanel.querySelectorAll('button');
+
+    difficultyButtons.forEach(btn => {
+      btn.onclick = () => {
+        let tileCount;
+        switch (btn.dataset.difficulty) {
+          case 'easy': tileCount = 8; break;
+          case 'medium': tileCount = 12; break;
+          case 'hard': tileCount = 16; break;
+          default: tileCount = 16;
+        }
+
+        difficultyPanel.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+
+        initGame(tileCount); // Initialize game with selected tile count
+      };
+    });
+  </script>
 </body>
 </html>

@@ -19,7 +19,7 @@ const PHASES = {
   waitingForFlipBack: ["waitingForSpin"]
 };
 
-// Simple assertion function for game state validation
+// Simple assertion function
 function assert(condition, message) {
   if (!condition) {
     console.error("❌ GAME ASSERTION FAILED:", message);
@@ -28,10 +28,7 @@ function assert(condition, message) {
 }
 
 function transitionTo(nextPhase) {
-  assert(
-    PHASES[gamePhase].includes(nextPhase),
-    `Illegal transition: ${gamePhase} → ${nextPhase}`
-  );
+  assert(PHASES[gamePhase].includes(nextPhase), `Illegal transition: ${gamePhase} → ${nextPhase}`);
   gamePhase = nextPhase;
 }
 
@@ -44,7 +41,6 @@ let gameState = {
 };
 
 let gamePhase = "waitingForSpin";
-// waitingForSpin → spinning → waitingForGuess → waitingForFlipBack
 
 const boardEl = document.getElementById("board");
 const booksEl = document.getElementById("books");
@@ -57,11 +53,11 @@ const scoreEl = document.getElementById("score");
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
 /* ================= INIT ================= */
+function initGame(tileCount = 16) {
+  const shuffledChars = [...characters].sort(() => Math.random() - 0.5).slice(0, tileCount);
+  const shuffledBooks = [...books].sort(() => Math.random() - 0.5).slice(0, tileCount);
 
-function initGame() {
-  const shuffledBooks = shuffle(books);
-
-  gameState.tiles = characters.map((char, i) => ({
+  gameState.tiles = shuffledChars.map((char, i) => ({
     character: char,
     book: shuffledBooks[i],
     removed: false
@@ -77,12 +73,10 @@ function initGame() {
 }
 
 /* ================= RENDER ================= */
-
 function validateState() {
   if (gamePhase === "waitingForGuess") {
     assert(gameState.selectedTile !== null, "Guess phase without selected tile");
   }
-
   if (gamePhase === "waitingForSpin") {
     assert(gameState.revealedTile === null, "Tile revealed during spin phase");
   }
@@ -97,30 +91,21 @@ function render() {
   validateState();
 }
 
-
 /* ----- BOARD (DECORATIVE ONLY) ----- */
-
 function renderBoard() {
   boardEl.innerHTML = "";
 
   gameState.tiles.forEach((tile, i) => {
     const tileEl = document.createElement("div");
     tileEl.className = "tile";
-
-    // Decorative only — no clicks
     tileEl.style.pointerEvents = "none";
     tileEl.style.cursor = "default";
-
-    tileEl.onclick = () => {
-      assert(false, "Tile click detected – tiles should not be interactive");
-    };
 
     if (tile.removed) tileEl.classList.add("removed");
     if (i === gameState.selectedTile) tileEl.classList.add("selected");
 
     const inner = document.createElement("div");
     inner.className = "tile-inner";
-
     if (i === gameState.revealedTile) {
       inner.classList.add("flipped");
       tileEl.classList.add("revealed");
@@ -137,18 +122,13 @@ function renderBoard() {
     inner.append(front, back);
     tileEl.appendChild(inner);
     boardEl.appendChild(tileEl);
-
-    // Toggle debug info - comment out when fully deployed
-    document.getElementById("debug").textContent =
-      `Phase: ${gamePhase}
-    Selected: ${gameState.selectedTile}
-    Revealed: ${gameState.revealedTile}
-    Remaining books: ${gameState.remainingBooks.length}`;
   });
+
+  document.getElementById("debug").textContent =
+    `Phase: ${gamePhase}\nSelected: ${gameState.selectedTile}\nRevealed: ${gameState.revealedTile}\nRemaining books: ${gameState.remainingBooks.length}`;
 }
 
 /* ----- BOOKSHELF (GUESSING ONLY) ----- */
-
 function renderBookshelf() {
   booksEl.innerHTML = "";
 
@@ -161,7 +141,6 @@ function renderBookshelf() {
       span.style.pointerEvents = "none";
       span.style.opacity = "0.4";
     } else {
-      assert(gamePhase === "waitingForGuess", "Book clicked outside guess phase");
       span.onclick = () => handleGuess(book);
     }
 
@@ -171,24 +150,17 @@ function renderBookshelf() {
 
 /* ----- BUTTON STATES ----- */
 function validateControls() {
-  assert(
-    spinBtn.disabled === (gamePhase !== "waitingForSpin"),
-    "Spin button desynced from phase"
-  );
+  assert(spinBtn.disabled === (gamePhase !== "waitingForSpin"), "Spin button desynced from phase");
 }
 
 function updateControls() {
   spinBtn.disabled = gamePhase !== "waitingForSpin";
   flipBackBtn.disabled = gamePhase !== "waitingForFlipBack";
 
-  flipBackPanel.classList.toggle(
-    "hidden",
-    gamePhase !== "waitingForFlipBack"
-  );
+  flipBackPanel.classList.toggle("hidden", gamePhase !== "waitingForFlipBack");
 }
 
 /* ================= SPIN ================= */
-
 spinBtn.onclick = () => {
   assert(gamePhase === "waitingForSpin", "Spin clicked at wrong time");
   transitionTo("spinning");
@@ -196,18 +168,14 @@ spinBtn.onclick = () => {
   gameState.selectedTile = null;
   resultEl.textContent = "";
 
-  const available = gameState.tiles
-    .map((t, i) => (!t.removed ? i : null))
-    .filter(i => i !== null);
+  const available = gameState.tiles.map((t,i) => !t.removed ? i : null).filter(i => i !== null);
 
   let steps = 10;
   let current = null;
   let delay = 30;
 
   const spin = () => {
-    if (current !== null) {
-      boardEl.children[current].classList.remove("highlighted");
-    }
+    if (current !== null) boardEl.children[current].classList.remove("highlighted");
 
     current = available[Math.floor(Math.random() * available.length)];
     boardEl.children[current].classList.add("highlighted");
@@ -215,16 +183,12 @@ spinBtn.onclick = () => {
     steps--;
     delay += 10;
 
-    if (steps > 0) {
-      setTimeout(spin, delay);
-    } else {
+    if (steps > 0) setTimeout(spin, delay);
+    else {
       gameState.selectedTile = current;
       boardEl.children[current].classList.remove("highlighted");
       boardEl.children[current].classList.add("selected");
-
-      resultEl.textContent =
-        `Selected: ${gameState.tiles[current].character}`;
-
+      resultEl.textContent = `Selected: ${gameState.tiles[current].character}`;
       transitionTo("waitingForGuess");
       render();
     }
@@ -234,7 +198,6 @@ spinBtn.onclick = () => {
 };
 
 /* ================= GUESS ================= */
-
 function handleGuess(bookGuess) {
   assert(gamePhase === "waitingForGuess", "Guess made at wrong time");
   assert(gameState.selectedTile !== null, "No tile selected");
@@ -245,8 +208,7 @@ function handleGuess(bookGuess) {
   if (bookGuess === tile.book) {
     tile.removed = true;
     gameState.score++;
-    gameState.remainingBooks =
-      gameState.remainingBooks.filter(b => b !== bookGuess);
+    gameState.remainingBooks = gameState.remainingBooks.filter(b => b !== bookGuess);
   }
 
   transitionTo("waitingForFlipBack");
@@ -254,7 +216,6 @@ function handleGuess(bookGuess) {
 }
 
 /* ================= FLIP BACK ================= */
-
 flipBackBtn.onclick = () => {
   assert(gamePhase === "waitingForFlipBack", "Flip-back at wrong time");
 
@@ -264,5 +225,3 @@ flipBackBtn.onclick = () => {
   transitionTo("waitingForSpin");
   render();
 };
-
-initGame();
