@@ -1,36 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Memory Spinner Game</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <title>Arthur Goes to the Library - Memory Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1>Arthur Goes to the Library - Memory Game</h1>
 
-  <h1>📚 Memory Spinner</h1>
+  <!-- Difficulty Selection -->
+  <div id="difficulty-panel">
+    <h2>Select Difficulty</h2>
+    <button data-difficulty="easy">Easy (8 tiles)</button>
+    <button data-difficulty="medium">Medium (12 tiles)</button>
+    <button data-difficulty="hard">Hard (16 tiles)</button>
+  </div>
 
-  <section id="bookshelf">
-    <h2>Bookshelf</h2>
+  <!-- Main Game UI (initially hidden) -->
+  <div id="game-container" class="hidden">
     <div id="books"></div>
-  </section>
+    <div id="board"></div>
 
-  <section id="wheel-section">
-    <button id="spin-btn">🎡 Spin</button>
-    <div id="wheel-result"></div>
-  </section>
+    <!-- Controls wrapper for centering -->
+    <div id="controls">
+      <button id="action-btn">SPIN</button>
+      <div id="timer-container">
+        Time: <span id="timer">00:00</span>
+      </div>
+    </div>
+  </div>
 
-  <section id="board"></section>
-
-  <section id="guess-panel" class="hidden">
-    <h2>Which book is under this character?</h2>
-    <div id="guess-options"></div>
-  </section>
-
-  <footer>
-    <p>Score: <span id="score">0</span></p>
-  </footer>
+  <!-- Optional debug info -->
+  <pre id="debug"></pre>
 
   <script src="script.js"></script>
+  <script>
+    // Hook difficulty selection buttons
+    const difficultyPanel = document.getElementById('difficulty-panel');
+    const gameContainer = document.getElementById('game-container');
+    const difficultyButtons = difficultyPanel.querySelectorAll('button');
+
+    difficultyButtons.forEach(btn => {
+      btn.onclick = () => {
+        let tileCount;
+        switch (btn.dataset.difficulty) {
+          case 'easy': tileCount = 8; break;
+          case 'medium': tileCount = 12; break;
+          case 'hard': tileCount = 16; break;
+          default: tileCount = 16;
+        }
+
+        difficultyPanel.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+
+        initGame(tileCount); // Initialize game with selected tile count
+      };
+    });
+  </script>
 </body>
 </html>
