@@ -78,6 +78,19 @@ h1 {
   box-shadow: 0 0 15px 5px #facc15;
 }
 
+/* Correct guess glow */
+.tile.correct-guess .tile-inner {
+  animation: correctGlow 0.8s ease-in-out forwards;
+  border: 3px solid #4CAF50;
+  box-shadow: 0 0 15px 5px #4CAF50;
+}
+
+@keyframes correctGlow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 /* Bookshelf */
 #books {
   display: flex;
@@ -154,11 +167,6 @@ button:disabled:hover {
   margin-bottom: 15px;
 }
 
-#score {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-}
-
 /* Controls wrapper */
 #controls {
   display: flex;
@@ -185,13 +193,7 @@ button:disabled:hover {
   transform: scale(1.05);
 }
 
-/* Score display below button */
-#score-container {
-  font-size: 1.5rem;
-  margin-top: 5px;
-}
-
-/* stopwatch styling */
+/* Stopwatch styling */
 #timer-container {
   font-size: 1.5rem;
   margin-top: 10px;
@@ -207,37 +209,29 @@ button:disabled:hover {
 /* =========================
    MOBILE RESPONSIVENESS
    ========================= */
-
 @media (max-width: 600px) {
-
   body {
     margin: 10px;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
-
-  body {
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
 
   h1 {
     font-size: 1.4rem;
     text-align: center;
   }
 
-  /* Game container spacing */
   #game-container {
     width: 100%;
     max-width: 100%;
   }
 
-  /* Board scales to screen */
   #board {
     grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     grid-gap: 10px;
     width: 100%;
   }
 
-  /* Smaller tiles */
   .tile {
     width: 70px;
     height: 70px;
@@ -247,7 +241,6 @@ button:disabled:hover {
     font-size: 2rem;
   }
 
-  /* Bookshelf becomes touch-friendly */
   #books {
     max-width: 100%;
     margin-bottom: 15px;
@@ -258,7 +251,6 @@ button:disabled:hover {
     margin: 6px;
   }
 
-  /* Center controls */
   #controls {
     display: flex;
     justify-content: center;
@@ -271,10 +263,7 @@ button:disabled:hover {
     min-width: 140px;
   }
 
-  /* Improve tap feedback */
   button:active {
     transform: scale(0.97);
   }
 }
-
-
