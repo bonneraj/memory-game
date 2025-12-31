@@ -32,6 +32,33 @@ function transitionTo(nextPhase) {
   gamePhase = nextPhase;
 }
 
+let timerInterval = null;
+let elapsedSeconds = 0;
+
+const timerEl = document.getElementById("timer");
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  elapsedSeconds = 0;
+  timerEl.textContent = formatTime(elapsedSeconds);
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    timerEl.textContent = formatTime(elapsedSeconds);
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const secs = (seconds % 60).toString().padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+
 let gameState = {
   tiles: [],
   remainingBooks: [],
@@ -44,9 +71,7 @@ let gamePhase = "waitingForSpin";
 
 const boardEl = document.getElementById("board");
 const booksEl = document.getElementById("books");
-const spinBtn = document.getElementById("spin-btn");
-const flipBackBtn = document.getElementById("flip-back-btn");
-const flipBackPanel = document.getElementById("flip-back-panel");
+const actionBtn = document.getElementById("action-btn");
 const resultEl = document.getElementById("wheel-result");
 const scoreEl = document.getElementById("score");
 
@@ -54,8 +79,8 @@ const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
 /* ================= INIT ================= */
 function initGame(tileCount = 16) {
-  const shuffledChars = [...characters].sort(() => Math.random() - 0.5).slice(0, tileCount);
-  const shuffledBooks = [...books].sort(() => Math.random() - 0.5).slice(0, tileCount);
+  const shuffledChars = shuffle(characters).slice(0, tileCount);
+  const shuffledBooks = shuffle(books).slice(0, tileCount);
 
   gameState.tiles = shuffledChars.map((char, i) => ({
     character: char,
@@ -68,6 +93,8 @@ function initGame(tileCount = 16) {
   gameState.selectedTile = null;
   gameState.revealedTile = null;
   gamePhase = "waitingForSpin";
+
+  startTimer();
 
   render();
 }
@@ -85,8 +112,7 @@ function validateState() {
 function render() {
   renderBoard();
   renderBookshelf();
-  updateControls();
-  validateControls();
+  updateActionButton();
   scoreEl.textContent = gameState.score;
   validateState();
 }
@@ -124,8 +150,9 @@ function renderBoard() {
     boardEl.appendChild(tileEl);
   });
 
-  document.getElementById("debug").textContent =
-    `Phase: ${gamePhase}\nSelected: ${gameState.selectedTile}\nRevealed: ${gameState.revealedTile}\nRemaining books: ${gameState.remainingBooks.length}`;
+  // DEBUG INFO - comment out as necessary
+  // document.getElementById("debug").textContent =
+  //   `Phase: ${gamePhase}\nSelected: ${gameState.selectedTile}\nRevealed: ${gameState.revealedTile}\nRemaining books: ${gameState.remainingBooks.length}`;
 }
 
 /* ----- BOOKSHELF (GUESSING ONLY) ----- */
@@ -148,27 +175,43 @@ function renderBookshelf() {
   });
 }
 
-/* ----- BUTTON STATES ----- */
-function validateControls() {
-  assert(spinBtn.disabled === (gamePhase !== "waitingForSpin"), "Spin button desynced from phase");
-}
+/* ================= SINGLE ACTION BUTTON ================= */
+function updateActionButton() {
+  switch (gamePhase) {
+    case "waitingForSpin":
+      actionBtn.textContent = "SPIN";
+      actionBtn.disabled = false;
+      actionBtn.onclick = spinCharacter;
+      break;
 
-function updateControls() {
-  spinBtn.disabled = gamePhase !== "waitingForSpin";
-  flipBackBtn.disabled = gamePhase !== "waitingForFlipBack";
+    case "spinning":
+      actionBtn.textContent = "Spinning...";
+      actionBtn.disabled = true;
+      break;
 
-  flipBackPanel.classList.toggle("hidden", gamePhase !== "waitingForFlipBack");
+    case "waitingForGuess":
+      actionBtn.textContent = "Make your guess";
+      actionBtn.disabled = true; // Guess via bookshelf
+      break;
+
+    case "waitingForFlipBack":
+      actionBtn.textContent = "Flip Back";
+      actionBtn.disabled = false;
+      actionBtn.onclick = flipBack;
+      break;
+  }
 }
 
 /* ================= SPIN ================= */
-spinBtn.onclick = () => {
+function spinCharacter() {
   assert(gamePhase === "waitingForSpin", "Spin clicked at wrong time");
   transitionTo("spinning");
 
   gameState.selectedTile = null;
-  resultEl.textContent = "";
 
-  const available = gameState.tiles.map((t,i) => !t.removed ? i : null).filter(i => i !== null);
+  const available = gameState.tiles
+    .map((t,i) => !t.removed ? i : null)
+    .filter(i => i !== null);
 
   let steps = 10;
   let current = null;
@@ -188,14 +231,13 @@ spinBtn.onclick = () => {
       gameState.selectedTile = current;
       boardEl.children[current].classList.remove("highlighted");
       boardEl.children[current].classList.add("selected");
-      resultEl.textContent = `Selected: ${gameState.tiles[current].character}`;
       transitionTo("waitingForGuess");
       render();
     }
   };
 
   spin();
-};
+}
 
 /* ================= GUESS ================= */
 function handleGuess(bookGuess) {
@@ -212,11 +254,17 @@ function handleGuess(bookGuess) {
   }
 
   transitionTo("waitingForFlipBack");
+
+  if (gameState.tiles.every(tile => tile.removed)) {
+  stopTimer();
+  alert(`🎉 You finished! Time: ${formatTime(elapsedSeconds)}`);
+}
+
   render();
 }
 
 /* ================= FLIP BACK ================= */
-flipBackBtn.onclick = () => {
+function flipBack() {
   assert(gamePhase === "waitingForFlipBack", "Flip-back at wrong time");
 
   gameState.revealedTile = null;
@@ -224,4 +272,6 @@ flipBackBtn.onclick = () => {
 
   transitionTo("waitingForSpin");
   render();
-};
+}
+
+initGame();
