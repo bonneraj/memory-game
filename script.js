@@ -21,6 +21,7 @@ let gameState = {
 };
 
 let gamePhase = "waitingForSpin";
+// waitingForSpin → waitingForGuess → waitingForFlipBack
 
 const boardEl = document.getElementById("board");
 const booksEl = document.getElementById("books");
@@ -44,9 +45,12 @@ function initGame() {
   render();
 }
 
+/* ===== RENDER ===== */
+
 function render() {
   renderBoard();
   renderBookshelf();
+  updateControls();
   scoreEl.textContent = gameState.score;
 }
 
@@ -93,7 +97,12 @@ function renderBookshelf() {
   });
 }
 
-/* ===== SPIN LOGIC ===== */
+function updateControls() {
+  spinBtn.disabled = gamePhase !== "waitingForSpin";
+  flipBackBtn.disabled = gamePhase !== "waitingForFlipBack";
+}
+
+/* ===== SPIN ===== */
 
 spinBtn.onclick = () => {
   if (gamePhase !== "waitingForSpin") return;
@@ -105,7 +114,7 @@ spinBtn.onclick = () => {
     .map((t, i) => (!t.removed ? i : null))
     .filter(i => i !== null);
 
-  let steps = 14;
+  let steps = 10;
   let current = null;
   let delay = 40;
 
@@ -117,7 +126,7 @@ spinBtn.onclick = () => {
     current = available[Math.floor(Math.random() * available.length)];
     boardEl.children[current].classList.add("highlighted");
 
-    delay += 15;
+    delay += 12;
     steps--;
 
     if (steps > 0) {
@@ -166,4 +175,4 @@ flipBackBtn.onclick = () => {
   render();
 };
 
-initGame(); 
+initGame();
