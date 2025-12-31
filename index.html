@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arthur Memory Game</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Game</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1>Arthur Memory Game</h1>
+  <h1>Memory Game</h1>
 
-  <!-- Interactive bookshelf -->
   <div id="books"></div>
 
-  <!-- Game board -->
   <div id="board"></div>
 
-  <!-- Selected character display -->
   <div id="wheel-result"></div>
-  <button id="spin-btn">Spin to select character</button>
 
-  <!-- Flip back button -->
+  <button id="spin-btn">Select character</button>
+
   <div id="flip-back-panel" class="hidden">
     <button id="flip-back-btn">Flip Card Back</button>
   </div>
 
-  <!-- Score -->
   <div>Score: <span id="score">0</span></div>
 
   <script src="script.js"></script>
