@@ -203,3 +203,78 @@ button:disabled:hover {
   text-align: center;
   width: 120px;
 }
+
+/* =========================
+   MOBILE RESPONSIVENESS
+   ========================= */
+
+@media (max-width: 600px) {
+
+  body {
+    margin: 10px;
+  }
+
+  body {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+  h1 {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  /* Game container spacing */
+  #game-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Board scales to screen */
+  #board {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    grid-gap: 10px;
+    width: 100%;
+  }
+
+  /* Smaller tiles */
+  .tile {
+    width: 70px;
+    height: 70px;
+  }
+
+  .tile-inner {
+    font-size: 2rem;
+  }
+
+  /* Bookshelf becomes touch-friendly */
+  #books {
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .book {
+    font-size: 2rem;
+    margin: 6px;
+  }
+
+  /* Center controls */
+  #controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  button {
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    min-width: 140px;
+  }
+
+  /* Improve tap feedback */
+  button:active {
+    transform: scale(0.97);
+  }
+}
+
+
