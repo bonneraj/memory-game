@@ -163,10 +163,18 @@ function renderBookshelf() {
 function updateActionButton() {
   switch (gamePhase) {
     case "waitingForSpin":
-    case "waitingForSpinCorrect": // after correct guess
+    case "waitingForSpinCorrect":
       actionBtn.textContent = "SPIN";
       actionBtn.disabled = false;
-      actionBtn.onclick = spinCharacter;
+      actionBtn.onclick = () => {
+        // Remove glow from previously correct tile
+        if (gameState.lastGuessCorrect && gameState.selectedTile !== null) {
+          const tileEl = boardEl.children[gameState.selectedTile];
+          tileEl.classList.remove("correct-glow");
+          gameState.lastGuessCorrect = false;
+        }
+        spinCharacter();
+      };
       break;
 
     case "spinning":
@@ -180,7 +188,7 @@ function updateActionButton() {
       break;
 
     case "waitingForFlipBack":
-      actionBtn.textContent = "Flip Back";
+      actionBtn.textContent = "FLIP BACK";
       actionBtn.disabled = false;
       actionBtn.onclick = flipBack;
       break;
@@ -236,27 +244,26 @@ function handleGuess(bookGuess) {
     tile.removed = true;
     gameState.remainingBooks = gameState.remainingBooks.filter(b => b !== bookGuess);
 
-    // Glow animation
+    // Add green glow on correct guess
     const tileEl = boardEl.children[gameState.selectedTile];
     tileEl.classList.add("correct-glow");
 
-    setTimeout(() => {
-      tileEl.classList.remove("correct-glow");
-      gameState.selectedTile = null;
-      gameState.revealedTile = null;
-      transitionTo("waitingForSpinCorrect"); // back to spin directly
-      render();
-    }, 600);
+    // Flag to indicate correct guess
+    gameState.lastGuessCorrect = true;
+
+    // Set phase to spin directly after correct guess
+    transitionTo("waitingForSpinCorrect");
 
   } else {
     // Incorrect guess: require flip back
+    gameState.lastGuessCorrect = false;
     transitionTo("waitingForFlipBack");
   }
 
   // Check if game completed
-  if (gameState.tiles.every(tile => tile.removed)) {
+  if (gameState.tiles.every(t => t.removed)) {
     stopTimer();
-    alert(`🎉 You finished! Time: ${formatTime(elapsedSeconds)}`);
+    setTimeout(() => alert(`🎉 You finished! Time: ${formatTime(elapsedSeconds)}`), 200);
   }
 
   render();

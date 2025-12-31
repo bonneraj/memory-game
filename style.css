@@ -78,14 +78,14 @@ h1 {
   box-shadow: 0 0 15px 5px #facc15;
 }
 
-/* Correct guess glow */
-.tile.correct-guess .tile-inner {
-  animation: correctGlow 0.8s ease-in-out forwards;
-  border: 3px solid #4CAF50;
-  box-shadow: 0 0 15px 5px #4CAF50;
+/* Correct guess glow (green) */
+.tile.correct-glow .tile-inner {
+  border: 5px solid #00a036 !important; /* Force green border */
+  box-shadow: 0 0 15px 5px #00a036 !important; /* Glow effect */
+  animation: glow 1s ease-in-out infinite alternate;
 }
 
-@keyframes correctGlow {
+@keyframes glow {
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
