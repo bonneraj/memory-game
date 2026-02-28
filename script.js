@@ -164,7 +164,7 @@ function updateActionButton() {
   switch (gamePhase) {
     case "waitingForSpin":
     case "waitingForSpinCorrect":
-      actionBtn.textContent = "SPIN";
+      actionBtn.textContent = "Spin";
       actionBtn.disabled = false;
       actionBtn.onclick = () => {
         // Remove glow from previously correct tile
@@ -188,7 +188,7 @@ function updateActionButton() {
       break;
 
     case "waitingForFlipBack":
-      actionBtn.textContent = "FLIP BACK";
+      actionBtn.textContent = "Flip Card Back";
       actionBtn.disabled = false;
       actionBtn.onclick = flipBack;
       break;
