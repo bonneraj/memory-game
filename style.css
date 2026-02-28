@@ -78,6 +78,19 @@ h1 {
   box-shadow: 0 0 15px 5px #facc15;
 }
 
+/* Correct guess glow (green) */
+.tile.correct-glow .tile-inner {
+  border: 5px solid #00a036 !important; /* Force green border */
+  box-shadow: 0 0 15px 5px #00a036 !important; /* Glow effect */
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 /* Bookshelf */
 #books {
   display: flex;
@@ -154,11 +167,6 @@ button:disabled:hover {
   margin-bottom: 15px;
 }
 
-#score {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-}
-
 /* Controls wrapper */
 #controls {
   display: flex;
@@ -185,13 +193,7 @@ button:disabled:hover {
   transform: scale(1.05);
 }
 
-/* Score display below button */
-#score-container {
-  font-size: 1.5rem;
-  margin-top: 5px;
-}
-
-/* stopwatch styling */
+/* Stopwatch styling */
 #timer-container {
   font-size: 1.5rem;
   margin-top: 10px;
@@ -202,4 +204,66 @@ button:disabled:hover {
   font-weight: bold;
   text-align: center;
   width: 120px;
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+   ========================= */
+@media (max-width: 600px) {
+  body {
+    margin: 10px;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  #game-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #board {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    grid-gap: 10px;
+    width: 100%;
+  }
+
+  .tile {
+    width: 70px;
+    height: 70px;
+  }
+
+  .tile-inner {
+    font-size: 2rem;
+  }
+
+  #books {
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .book {
+    font-size: 2rem;
+    margin: 6px;
+  }
+
+  #controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  button {
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    min-width: 140px;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
 }

@@ -15,8 +15,9 @@ const books = [
 const PHASES = {
   waitingForSpin: ["spinning"],
   spinning: ["waitingForGuess"],
-  waitingForGuess: ["waitingForFlipBack"],
-  waitingForFlipBack: ["waitingForSpin"]
+  waitingForGuess: ["waitingForFlipBack", "waitingForSpinCorrect"],
+  waitingForFlipBack: ["waitingForSpin"],
+  waitingForSpinCorrect: ["spinning"] // Correct guess goes back to spin
 };
 
 // Simple assertion function
@@ -28,13 +29,16 @@ function assert(condition, message) {
 }
 
 function transitionTo(nextPhase) {
-  assert(PHASES[gamePhase].includes(nextPhase), `Illegal transition: ${gamePhase} → ${nextPhase}`);
+  assert(
+    PHASES[gamePhase].includes(nextPhase),
+    `Illegal transition: ${gamePhase} → ${nextPhase}`
+  );
   gamePhase = nextPhase;
 }
 
+// Timer setup
 let timerInterval = null;
 let elapsedSeconds = 0;
-
 const timerEl = document.getElementById("timer");
 
 function startTimer() {
@@ -58,13 +62,12 @@ function formatTime(seconds) {
   return `${mins}:${secs}`;
 }
 
-
+// Game state
 let gameState = {
   tiles: [],
   remainingBooks: [],
   selectedTile: null,
-  revealedTile: null,
-  score: 0
+  revealedTile: null
 };
 
 let gamePhase = "waitingForSpin";
@@ -72,9 +75,8 @@ let gamePhase = "waitingForSpin";
 const boardEl = document.getElementById("board");
 const booksEl = document.getElementById("books");
 const actionBtn = document.getElementById("action-btn");
-const resultEl = document.getElementById("wheel-result");
-const scoreEl = document.getElementById("score");
 
+// Shuffle utility
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
 /* ================= INIT ================= */
@@ -89,35 +91,22 @@ function initGame(tileCount = 16) {
   }));
 
   gameState.remainingBooks = [...shuffledBooks];
-  gameState.score = 0;
   gameState.selectedTile = null;
   gameState.revealedTile = null;
   gamePhase = "waitingForSpin";
 
   startTimer();
-
   render();
 }
 
 /* ================= RENDER ================= */
-function validateState() {
-  if (gamePhase === "waitingForGuess") {
-    assert(gameState.selectedTile !== null, "Guess phase without selected tile");
-  }
-  if (gamePhase === "waitingForSpin") {
-    assert(gameState.revealedTile === null, "Tile revealed during spin phase");
-  }
-}
-
 function render() {
   renderBoard();
   renderBookshelf();
   updateActionButton();
-  scoreEl.textContent = gameState.score;
-  validateState();
 }
 
-/* ----- BOARD (DECORATIVE ONLY) ----- */
+/* ----- BOARD ----- */
 function renderBoard() {
   boardEl.innerHTML = "";
 
@@ -125,7 +114,6 @@ function renderBoard() {
     const tileEl = document.createElement("div");
     tileEl.className = "tile";
     tileEl.style.pointerEvents = "none";
-    tileEl.style.cursor = "default";
 
     if (tile.removed) tileEl.classList.add("removed");
     if (i === gameState.selectedTile) tileEl.classList.add("selected");
@@ -149,13 +137,9 @@ function renderBoard() {
     tileEl.appendChild(inner);
     boardEl.appendChild(tileEl);
   });
-
-  // DEBUG INFO - comment out as necessary
-  // document.getElementById("debug").textContent =
-  //   `Phase: ${gamePhase}\nSelected: ${gameState.selectedTile}\nRevealed: ${gameState.revealedTile}\nRemaining books: ${gameState.remainingBooks.length}`;
 }
 
-/* ----- BOOKSHELF (GUESSING ONLY) ----- */
+/* ----- BOOKSHELF ----- */
 function renderBookshelf() {
   booksEl.innerHTML = "";
 
@@ -175,13 +159,22 @@ function renderBookshelf() {
   });
 }
 
-/* ================= SINGLE ACTION BUTTON ================= */
+/* ----- SINGLE ACTION BUTTON ----- */
 function updateActionButton() {
   switch (gamePhase) {
     case "waitingForSpin":
-      actionBtn.textContent = "SPIN";
+    case "waitingForSpinCorrect":
+      actionBtn.textContent = "Spin";
       actionBtn.disabled = false;
-      actionBtn.onclick = spinCharacter;
+      actionBtn.onclick = () => {
+        // Remove glow from previously correct tile
+        if (gameState.lastGuessCorrect && gameState.selectedTile !== null) {
+          const tileEl = boardEl.children[gameState.selectedTile];
+          tileEl.classList.remove("correct-glow");
+          gameState.lastGuessCorrect = false;
+        }
+        spinCharacter();
+      };
       break;
 
     case "spinning":
@@ -191,11 +184,11 @@ function updateActionButton() {
 
     case "waitingForGuess":
       actionBtn.textContent = "Make your guess";
-      actionBtn.disabled = true; // Guess via bookshelf
+      actionBtn.disabled = true;
       break;
 
     case "waitingForFlipBack":
-      actionBtn.textContent = "Flip Back";
+      actionBtn.textContent = "Flip Card Back";
       actionBtn.disabled = false;
       actionBtn.onclick = flipBack;
       break;
@@ -204,13 +197,13 @@ function updateActionButton() {
 
 /* ================= SPIN ================= */
 function spinCharacter() {
-  assert(gamePhase === "waitingForSpin", "Spin clicked at wrong time");
+  assert(gamePhase === "waitingForSpin" || gamePhase === "waitingForSpinCorrect", "Spin clicked at wrong time");
   transitionTo("spinning");
 
   gameState.selectedTile = null;
 
   const available = gameState.tiles
-    .map((t,i) => !t.removed ? i : null)
+    .map((t, i) => !t.removed ? i : null)
     .filter(i => i !== null);
 
   let steps = 10;
@@ -249,16 +242,29 @@ function handleGuess(bookGuess) {
 
   if (bookGuess === tile.book) {
     tile.removed = true;
-    gameState.score++;
     gameState.remainingBooks = gameState.remainingBooks.filter(b => b !== bookGuess);
+
+    // Add green glow on correct guess
+    const tileEl = boardEl.children[gameState.selectedTile];
+    tileEl.classList.add("correct-glow");
+
+    // Flag to indicate correct guess
+    gameState.lastGuessCorrect = true;
+
+    // Set phase to spin directly after correct guess
+    transitionTo("waitingForSpinCorrect");
+
+  } else {
+    // Incorrect guess: require flip back
+    gameState.lastGuessCorrect = false;
+    transitionTo("waitingForFlipBack");
   }
 
-  transitionTo("waitingForFlipBack");
-
-  if (gameState.tiles.every(tile => tile.removed)) {
-  stopTimer();
-  alert(`🎉 You finished! Time: ${formatTime(elapsedSeconds)}`);
-}
+  // Check if game completed
+  if (gameState.tiles.every(t => t.removed)) {
+    stopTimer();
+    setTimeout(() => alert(`🎉 You finished! Time: ${formatTime(elapsedSeconds)}`), 200);
+  }
 
   render();
 }
